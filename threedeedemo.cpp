@@ -20,10 +20,16 @@
 #define SCREEN_HEIGHT 95
 #define FLOOR_HEIGHT 15
 #define CEIL_HEIGHT 15
-#define MAP_HEIGHT 10
-#define MAP_WIDTH 10
+#define MAP_HEIGHT 30
+#define MAP_WIDTH 30
 #define SIGHT_INCREMENT 0.01
 #define BORDER_THICKNESS 0.02
+#define ROT_SPEED_COEFF 0.5
+#define TRANS_SPEED_COEFF 0.75
+#define SKEW_COEFF 125
+#define DIST_COEFF 0.02
+#define LOS_COEFF 3.0
+#define LOD 1
 #define PI 3.14159
 
 int main()
@@ -41,8 +47,8 @@ int main()
 
 	float playerX = 2, playerY = 2;
 	float playerAng = PI / 2;
-	float playerFOV = PI / 4;
-	float playerLOS = 8;
+	float playerFOV = PI / 3;
+	float playerLOS = 30;
 
 	CONSOLE_FONT_INFOEX cfi;
 	cfi.cbSize = sizeof(cfi);
@@ -76,7 +82,7 @@ int main()
 	for (int y = 0; y < MAP_HEIGHT; y++) {
 		for (int x = 0; x < MAP_WIDTH; x++) {
 			map[x + y * MAP_WIDTH] = ' ';
-			if (x == 0 || y == 0 || x == MAP_WIDTH - 1 || y == MAP_HEIGHT - 1 || (x == MAP_WIDTH / 2 && (y <= MAP_HEIGHT / 2 + 1 && y >= MAP_HEIGHT / 2 - 1))) {
+			if (x == 0 || y == 0 || x == MAP_WIDTH - 1 || y == MAP_HEIGHT - 1 || (x == MAP_WIDTH / 3 && (y <= MAP_HEIGHT / 2 + MAP_HEIGHT / 4 && y >= MAP_HEIGHT / 2 - MAP_HEIGHT / 4)) || (x == 2 * MAP_WIDTH / 3 && (y <= MAP_HEIGHT / 2 + MAP_HEIGHT / 4 && y >= MAP_HEIGHT / 2 - MAP_HEIGHT / 4))) {
 				map[x + y * MAP_WIDTH] = '#';
 			}
 			
@@ -169,50 +175,50 @@ int main()
 			eDown = true;
 		}
 		if (wDown) {
-			playerX += cos(playerAng) * 5.4 * elapsedTime.count();
-			playerY += sin(playerAng) * 5.4 * elapsedTime.count();
-			if (round(playerX) < 0 || round(playerX) >= MAP_WIDTH || map[(int)round(playerX) + (int)round(playerY) * MAP_WIDTH] == '#') {
-				playerX -= cos(playerAng) * 5.4 * elapsedTime.count();
+			playerX += cos(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
+			playerY += sin(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
+			if (round(playerX) < 0 || round(playerX) >= MAP_WIDTH || map[(int)round(playerX) + (int)round(playerY - sin(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count()) * MAP_WIDTH] == '#') {
+				playerX -= cos(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
 			}
-			if (round(playerY) < 0 || round(playerY) >= MAP_HEIGHT || map[(int)round(playerX) + (int)round(playerY) * MAP_WIDTH] == '#') {
-				playerY -= sin(playerAng) * 5.4 * elapsedTime.count();
+			if (round(playerY) < 0 || round(playerY) >= MAP_HEIGHT || map[(int)round(playerX - cos(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count()) + (int)round(playerY) * MAP_WIDTH] == '#') {
+				playerY -= sin(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
 			}
 		}
 		if (sDown) {
-			playerX -= cos(playerAng) * 5.4 * elapsedTime.count();
-			playerY -= sin(playerAng) * 5.4 * elapsedTime.count();
-			if (round(playerX) < 0 || round(playerX) >= MAP_WIDTH || map[(int)round(playerX) + (int)round(playerY) * MAP_WIDTH] == '#') {
-				playerX += cos(playerAng) * 5.4 * elapsedTime.count();
+			playerX -= cos(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
+			playerY -= sin(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
+			if (round(playerX) < 0 || round(playerX) >= MAP_WIDTH || map[(int)round(playerX) + (int)round(playerY + sin(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count()) * MAP_WIDTH] == '#') {
+				playerX += cos(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
 			}
-			if (round(playerY) < 0 || round(playerY) >= MAP_HEIGHT || map[(int)round(playerX) + (int)round(playerY) * MAP_WIDTH] == '#') {
-				playerY += sin(playerAng) * 5.4 * elapsedTime.count();
+			if (round(playerY) < 0 || round(playerY) >= MAP_HEIGHT || map[(int)round(playerX + cos(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count()) + (int)round(playerY) * MAP_WIDTH] == '#') {
+				playerY += sin(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
 			}
 		}
 		if (aDown) {
-			playerX += sin(playerAng) * 5.4 * elapsedTime.count();
-			playerY -= cos(playerAng) * 5.4 * elapsedTime.count();
-			if (round(playerX) < 0 || round(playerX) >= MAP_WIDTH || map[(int)round(playerX) + (int)round(playerY) * MAP_WIDTH] == '#') {
-				playerX -= sin(playerAng) * 5.4 * elapsedTime.count();
+			playerX += sin(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
+			playerY -= cos(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
+			if (round(playerX) < 0 || round(playerX) >= MAP_WIDTH || map[(int)round(playerX) + (int)round(playerY + cos(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count()) * MAP_WIDTH] == '#') {
+				playerX -= sin(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
 			}
-			if (round(playerY) < 0 || round(playerY) >= MAP_HEIGHT || map[(int)round(playerX) + (int)round(playerY) * MAP_WIDTH] == '#') {
-				playerY += cos(playerAng) * 5.4 * elapsedTime.count();
+			if (round(playerY) < 0 || round(playerY) >= MAP_HEIGHT || map[(int)round(playerX - sin(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count()) + (int)round(playerY) * MAP_WIDTH] == '#') {
+				playerY += cos(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
 			}
 		}
 		if (dDown) {
-			playerX -= sin(playerAng) * 5.4 * elapsedTime.count();
-			playerY += cos(playerAng) * 5.4 * elapsedTime.count();
-			if (round(playerX) < 0 || round(playerX) >= MAP_WIDTH || map[(int)round(playerX) + (int)round(playerY) * MAP_WIDTH] == '#') {
-				playerX += sin(playerAng) * 5.4 * elapsedTime.count();
+			playerX -= sin(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
+			playerY += cos(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
+			if (round(playerX) < 0 || round(playerX) >= MAP_WIDTH || map[(int)round(playerX) + (int)round(playerY - cos(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count()) * MAP_WIDTH] == '#') {
+				playerX += sin(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
 			}
-			if (round(playerY) < 0 || round(playerY) >= MAP_HEIGHT || map[(int)round(playerX) + (int)round(playerY) * MAP_WIDTH] == '#') {
-				playerY -= cos(playerAng) * 5.4 * elapsedTime.count();
+			if (round(playerY) < 0 || round(playerY) >= MAP_HEIGHT || map[(int)round(playerX + sin(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count()) + (int)round(playerY) * MAP_WIDTH] == '#') {
+				playerY -= cos(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
 			}
 		}
 		if (qDown) {
-			playerAng -= 3.5 * elapsedTime.count();
+			playerAng -= 3.5 * ROT_SPEED_COEFF * elapsedTime.count();
 		}
 		if (eDown) {
-			playerAng += 3.5 * elapsedTime.count();
+			playerAng += 3.5 * ROT_SPEED_COEFF * elapsedTime.count();
 		}
 		char* tempStore = new char[SCREEN_WIDTH];
 		double* distStore = new double[SCREEN_WIDTH];
@@ -252,8 +258,24 @@ int main()
 					if (dist < 0.25 * playerLOS) {
 						_char = 178;
 					}
-					if (abs(round(px * 100) / 100 - round(px)) < BORDER_THICKNESS || abs(round(py * 100) / 100 - round(py)) < BORDER_THICKNESS) {
-						_char = ' ';
+					if (dist < LOD * playerLOS) {
+						if (abs(round((px) * 100) / 100 - round(px)) < min(LOS_COEFF * BORDER_THICKNESS * 1.2 * 4 * (dist / playerLOS), max(BORDER_THICKNESS, BORDER_THICKNESS * min(LOS_COEFF * 2, LOS_COEFF * DIST_COEFF * dist) * max(0.1, LOS_COEFF * SKEW_COEFF * abs(dist - distStore[min(0, x - 1)])))) || abs(round(py * 100) / 100 - round(py)) < min(LOS_COEFF * BORDER_THICKNESS * 1.2 * 4 * (dist / playerLOS), max(BORDER_THICKNESS, BORDER_THICKNESS * min(LOS_COEFF * 2, LOS_COEFF * DIST_COEFF * dist) * max(0.1, LOS_COEFF * SKEW_COEFF * abs(dist - distStore[min(0, x - 1)]))))) {
+							if (dist < 0.5 * playerLOS) {
+								_char = ' ';
+							}
+							if (dist < 0.75 * 0.5 * playerLOS) {
+								_char = '+';
+							}
+							if (dist < 0.5 * 0.5 * playerLOS) {
+								_char = '#';
+							}
+							if (dist < 0.25 * 0.5 * playerLOS) {
+								_char = 176;
+							}
+							if (dist < 0.10 * 0.5 * playerLOS) {
+								_char = 177;
+							}
+						}
 					}
 					tempStore[x] = _char;
 					distStore[x] = dist;
