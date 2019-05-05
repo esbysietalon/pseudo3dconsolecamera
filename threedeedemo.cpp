@@ -171,18 +171,42 @@ int main()
 		if (wDown) {
 			playerX += cos(playerAng) * 5.4 * elapsedTime.count();
 			playerY += sin(playerAng) * 5.4 * elapsedTime.count();
+			if (round(playerX) < 0 || round(playerX) >= MAP_WIDTH || map[(int)round(playerX) + (int)round(playerY) * MAP_WIDTH] == '#') {
+				playerX -= cos(playerAng) * 5.4 * elapsedTime.count();
+			}
+			if (round(playerY) < 0 || round(playerY) >= MAP_HEIGHT || map[(int)round(playerX) + (int)round(playerY) * MAP_WIDTH] == '#') {
+				playerY -= sin(playerAng) * 5.4 * elapsedTime.count();
+			}
 		}
 		if (sDown) {
 			playerX -= cos(playerAng) * 5.4 * elapsedTime.count();
 			playerY -= sin(playerAng) * 5.4 * elapsedTime.count();
+			if (round(playerX) < 0 || round(playerX) >= MAP_WIDTH || map[(int)round(playerX) + (int)round(playerY) * MAP_WIDTH] == '#') {
+				playerX += cos(playerAng) * 5.4 * elapsedTime.count();
+			}
+			if (round(playerY) < 0 || round(playerY) >= MAP_HEIGHT || map[(int)round(playerX) + (int)round(playerY) * MAP_WIDTH] == '#') {
+				playerY += sin(playerAng) * 5.4 * elapsedTime.count();
+			}
 		}
 		if (aDown) {
 			playerX += sin(playerAng) * 5.4 * elapsedTime.count();
 			playerY -= cos(playerAng) * 5.4 * elapsedTime.count();
+			if (round(playerX) < 0 || round(playerX) >= MAP_WIDTH || map[(int)round(playerX) + (int)round(playerY) * MAP_WIDTH] == '#') {
+				playerX -= sin(playerAng) * 5.4 * elapsedTime.count();
+			}
+			if (round(playerY) < 0 || round(playerY) >= MAP_HEIGHT || map[(int)round(playerX) + (int)round(playerY) * MAP_WIDTH] == '#') {
+				playerY += cos(playerAng) * 5.4 * elapsedTime.count();
+			}
 		}
 		if (dDown) {
 			playerX -= sin(playerAng) * 5.4 * elapsedTime.count();
 			playerY += cos(playerAng) * 5.4 * elapsedTime.count();
+			if (round(playerX) < 0 || round(playerX) >= MAP_WIDTH || map[(int)round(playerX) + (int)round(playerY) * MAP_WIDTH] == '#') {
+				playerX += sin(playerAng) * 5.4 * elapsedTime.count();
+			}
+			if (round(playerY) < 0 || round(playerY) >= MAP_HEIGHT || map[(int)round(playerX) + (int)round(playerY) * MAP_WIDTH] == '#') {
+				playerY -= cos(playerAng) * 5.4 * elapsedTime.count();
+			}
 		}
 		if (qDown) {
 			playerAng -= 3.5 * elapsedTime.count();
