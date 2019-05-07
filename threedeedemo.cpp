@@ -29,8 +29,12 @@
 #define SKEW_COEFF 125
 #define DIST_COEFF 0.02
 #define LOS_COEFF 3.0
-#define LOD 1
+#define LOD -1
 #define PI 3.14159
+
+class Texture {
+
+};
 
 int main()
 {
@@ -47,7 +51,7 @@ int main()
 
 	float playerX = 2, playerY = 2;
 	float playerAng = PI / 2;
-	float playerFOV = PI / 3;
+	float playerFOV = PI / 2;
 	float playerLOS = 30;
 
 	CONSOLE_FONT_INFOEX cfi;
@@ -78,7 +82,7 @@ int main()
 
 
 	char* map = new char[MAP_WIDTH * MAP_HEIGHT];
-	INPUT_RECORD* eventBuffer = new INPUT_RECORD[1];
+
 	for (int y = 0; y < MAP_HEIGHT; y++) {
 		for (int x = 0; x < MAP_WIDTH; x++) {
 			map[x + y * MAP_WIDTH] = ' ';
@@ -98,35 +102,6 @@ int main()
 		start = end;
 		end = std::chrono::system_clock::now();
 		elapsedTime = end - start;
-
-		char input = ' ';
-
-		/* Variable for holding the number of current events, and a point to it */
-		DWORD numEvents = 0;
-
-
-		/* Variable for holding how many events were read */
-		DWORD numEventsRead = 0;
-
-
-		/* Put the number of console input events into numEvents */
-		GetNumberOfConsoleInputEvents(rHnd, &numEvents);
-
-
-		if (numEvents) /* if there's an event */
-		{
-			/* Allocate the correct amount of memory to store the events */
-			eventBuffer = (INPUT_RECORD*)malloc(sizeof(INPUT_RECORD) * numEvents);
-
-			/* Place the stored events into the eventBuffer pointer */
-			ReadConsoleInput(rHnd, eventBuffer, numEvents, &numEventsRead);
-		
-			switch (eventBuffer[0].EventType) {
-			case KEY_EVENT:
-				input = eventBuffer[0].Event.KeyEvent.uChar.AsciiChar;
-				break;
-			}
-		}
 
 		
 		/*switch (input) {
