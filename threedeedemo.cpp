@@ -25,28 +25,32 @@
 #define SIGHT_INCREMENT 0.01
 #define BORDER_THICKNESS 0.02
 #define ROT_SPEED_COEFF 0.5
-#define TRANS_SPEED_COEFF 0.75
+#define TRANS_SPEED_COEFF 1.15
 #define SKEW_COEFF 125
 #define DIST_COEFF 0.02
 #define LOS_COEFF 3.0
 #define LOD -1
+#define X_LIMIT WINDOW_WIDTH / 2
+#define Y_LIMIT WINDOW_HEIGHT / 2
 #define PI 3.14159
 
-class Texture {
-
-};
+void GetWindowPos(long *x, long *y) {
+	RECT rect = { NULL };
+	if (GetWindowRect(GetConsoleWindow(), &rect)) {
+		*x = rect.left;
+		*y = rect.top;
+	}
+}
 
 int main()
 {
-	//FORGOT TO CHANGE DIMENSIONS FROM PIXELS TO CHARS
-
-
+	
 	HANDLE wHnd, rHnd;
 	COORD characterBufferSize, bufferSize;
 	COORD characterPosition;
 	SMALL_RECT consoleWriteArea;
 	SMALL_RECT windowSize;
-	CHAR_INFO* consoleBuffer = new CHAR_INFO[1200 * 800];
+	CHAR_INFO* consoleBuffer = new CHAR_INFO[SCREEN_WIDTH * SCREEN_HEIGHT];
 
 
 	float playerX = 2, playerY = 2;
@@ -61,7 +65,7 @@ int main()
 	cfi.dwFontSize.Y = 9;                  // Height
 	cfi.FontFamily = FF_DONTCARE;
 	cfi.FontWeight = FW_NORMAL;
-	std::wcscpy(cfi.FaceName, L"Raster Fonts"); // Choose your font
+	std::wcscpy(cfi.FaceName, L"Raster Fonts");		// Choose your font
 	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
 
 	HWND console = GetConsoleWindow();
@@ -97,40 +101,32 @@ int main()
 	auto start = std::chrono::system_clock::now();
 	auto end = std::chrono::system_clock::now();
 	std::chrono::duration<double> elapsedTime = end - start;
-
+	POINT cursor;
+	POINT baseCursor;
+	POINT raw;
+	//ScreenToClient(console, &baseCursor);
+	//int wx = 0, wy = 0;
 	while (true) {
+		while (ShowCursor(false) >= 0);
 		start = end;
 		end = std::chrono::system_clock::now();
 		elapsedTime = end - start;
-
-		
-		/*switch (input) {
-		case 'w':
-			playerX += cos(playerAng) * 5.4 * elapsedTime.count();
-			playerY += sin(playerAng) * 5.4 * elapsedTime.count();
-			break;
-		case 's':
-			playerX -= cos(playerAng) * 5.4 * elapsedTime.count();
-			playerY -= sin(playerAng) * 5.4 * elapsedTime.count();
-			break;
-		case 'a':
-			playerAng -= 3.5 * elapsedTime.count();
-			//system("cls");
-			//std::cout << playerAng << std::endl;
-			break;
-		case 'd':
-			playerAng += 3.5 * elapsedTime.count();
-			//system("cls");
-			//std::cout << playerAng << std::endl;
-			break;
-		}*/
-
 		bool wDown = false;
 		bool sDown = false;
 		bool aDown = false;
 		bool dDown = false;
 		bool qDown = false;
 		bool eDown = false;
+
+		GetWindowPos(&(baseCursor.x), &(baseCursor.y));
+		baseCursor.x += WINDOW_WIDTH / 2;
+		baseCursor.y += WINDOW_HEIGHT / 2;
+		//baseCursor.x = WINDOW_WIDTH / 2;
+		//baseCursor.y = WINDOW_HEIGHT / 2;
+		GetCursorPos(&cursor);
+		GetCursorPos(&raw);
+		//ScreenToClient(console, &baseCursor);
+		ScreenToClient(console, &cursor);
 		if (GetAsyncKeyState(0x57)) {
 			wDown = true;
 		}
@@ -149,6 +145,29 @@ int main()
 		if (GetAsyncKeyState(0x45)) {
 			eDown = true;
 		}
+		if (raw.x > baseCursor.x + X_LIMIT) {
+			SetCursorPos(baseCursor.x, raw.y);
+		}
+		if (raw.x < baseCursor.x - X_LIMIT) {
+			SetCursorPos(baseCursor.x, raw.y);
+		}
+		playerAng = (double)(raw.x - baseCursor.x)/X_LIMIT * PI * 8;
+		//std::cout << playerAng << std::endl;
+		/*if (raw.y > baseCursor.y + Y_LIMIT) {
+			SetCursorPos(raw.x, baseCursor.y);
+		}*/
+		/*if (raw.y < baseCursor.y - Y_LIMIT) {
+			SetCursorPos(raw.x, baseCursor.y);
+		}*/
+		
+		/*if (cursor.x < baseCursor.x) {
+			playerAng -= 3.5 * ROT_SPEED_COEFF * elapsedTime.count();
+		}
+		if (cursor.x > baseCursor.x) {
+			playerAng += 3.5 * ROT_SPEED_COEFF * elapsedTime.count();
+		}*/
+		GetCursorPos(&baseCursor);
+		ScreenToClient(console, &baseCursor);
 		if (wDown) {
 			playerX += cos(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
 			playerY += sin(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
@@ -189,12 +208,12 @@ int main()
 				playerY -= cos(playerAng) * 5.4 * TRANS_SPEED_COEFF * elapsedTime.count();
 			}
 		}
-		if (qDown) {
+		/*if (qDown) {
 			playerAng -= 3.5 * ROT_SPEED_COEFF * elapsedTime.count();
 		}
 		if (eDown) {
 			playerAng += 3.5 * ROT_SPEED_COEFF * elapsedTime.count();
-		}
+		}*/
 		char* tempStore = new char[SCREEN_WIDTH];
 		double* distStore = new double[SCREEN_WIDTH];
 		for (int i = 0; i < SCREEN_WIDTH; i++) {
